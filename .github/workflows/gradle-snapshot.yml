@@ -1,0 +1,51 @@
+name: Gradle Snapshot Package
+
+on:
+  push:
+    branches:
+      - staging
+      - master
+  pull_request:
+    branches:
+      - master
+      - staging
+  workflow_dispatch:
+
+jobs:
+  build:
+    runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      packages: write
+    env:
+      # For stuff need our private packages
+      # USERNAME: ${{ secrets.SERVICE_ID }}
+      # TOKEN: ${{ secrets.SERVICE_PAT }}
+      # For stuff that doesn't need our private packages
+      USERNAME: ${{ github.actor }}
+      TOKEN: ${{ secrets.GITHUB_TOKEN }}
+    steps:
+      - name: Set SNAPSHOT version from latest release
+        run: |
+          echo "Fetching version information..."
+          tag=$(curl --silent "https://api.github.com/repos/${{ github.event.repository.full_name }}/releases/latest" | grep -Po '"tag_name": "\K.*?(?=")')
+          echo "BASE_VERSION=${tag/v/}" >> $GITHUB_ENV
+          ts=$(date +%s)
+          echo "VERSION=${tag/v/}-SNAPSHOT-${ts}" >> $GITHUB_ENV
+          echo "Package version: ${tag/v/}-SNAPSHOT-${ts}"
+      - uses: actions/checkout@v2
+      - name: Set up JDK 16
+        uses: actions/setup-java@v2
+        with:
+          java-version: '16'
+          distribution: 'adopt'
+          server-id: github
+          cache: 'gradle'
+          settings-path: ${{ github.workspace }}
+      - name: Gradle build
+        run: gradle build
+      - name: Gradle test
+        run: gradle test
+      - name: Publish to GitHub Packages
+        run: gradle publish
+        
