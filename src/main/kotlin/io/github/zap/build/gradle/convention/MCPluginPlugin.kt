@@ -45,12 +45,18 @@ class MCPluginPlugin : Plugin<Project> {
         }
 
         project.tasks.getOrRegister("clean-plugin", Delete::class.java) {
-            File(project.pluginDir).listFiles { _: File, name: String ->
-                name.contains(project.name)
+            File(project.pluginDir).listFiles {
+                    _: File, name: String ->
+                name.endsWith(".jar")
             }?.let { fs -> fs.forEach { f ->
-                it.delete(f)
+                if(f.isFile) { //in case there's a folder named .jar
+                    println("Adding file " + f.name + " to be deleted")
+                    it.delete(f)
+                }
             }}
         }
+
+        project.tasks.named("clean-plugin").get().outputs.upToDateWhen { false }
 
         project.tasks.named("copyPlugins") {
             it.dependsOn("clean-plugin")
