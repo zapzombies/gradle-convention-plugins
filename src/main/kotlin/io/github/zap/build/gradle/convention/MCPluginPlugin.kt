@@ -56,8 +56,6 @@ class MCPluginPlugin : Plugin<Project> {
             }}
         }
 
-        project.tasks.named("clean-plugin").get().outputs.upToDateWhen { false }
-
         project.tasks.named("copyPlugins") {
             it.dependsOn("clean-plugin")
         }
