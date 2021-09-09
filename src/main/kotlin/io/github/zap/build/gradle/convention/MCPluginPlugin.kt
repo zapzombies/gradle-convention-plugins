@@ -6,8 +6,6 @@ import org.gradle.api.tasks.Copy
 import org.gradle.api.tasks.Delete
 import org.gradle.api.tasks.compile.JavaCompile
 import java.io.File
-import java.io.FilenameFilter
-import java.net.URI
 
 class MCPluginPlugin : Plugin<Project> {
     override fun apply(project: Project) {
@@ -45,15 +43,12 @@ class MCPluginPlugin : Plugin<Project> {
         }
 
         project.tasks.getOrRegister("clean-plugin", Delete::class.java) {
-            File(project.pluginDir).listFiles {
-                    _: File, name: String ->
-                name.endsWith(".jar")
-            }?.let { fs -> fs.forEach { f ->
-                if(f.isFile) { //in case there's a folder named .jar
-                    println("Adding file " + f.name + " to be deleted")
-                    it.delete(f)
-                }
-            }}
+            File(project.pluginDir).listFiles()?.filter { f ->
+                f.isFile && f.name.endsWith(".jar")
+            }?.forEach { f ->
+                println("Deleting file $f")
+                it.delete(f)
+            }
         }
 
         project.tasks.named("copyPlugins") {
