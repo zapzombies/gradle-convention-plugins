@@ -173,7 +173,7 @@ fun Project.configureShadow(destination: File,
     }
 }
 
-fun Project.qs (name: String = "", options: ExternalModuleDependency.() -> Unit = {}) : ExternalModuleDependency.() -> Unit {
+fun Project.qs(name: String = "", options: ExternalModuleDependency.() -> Unit = {}) : ExternalModuleDependency.() -> Unit {
     return {
         val actualName = name.ifEmpty { this.name }
         version {
@@ -206,7 +206,7 @@ internal fun Project.getQsLocals(): Set<String>? {
         }
     }
 
-    val useLocalClause = project.findProperty("qs.useLocal") as String?
+    val useLocalClause = project.findProperty("qs.useLocal") as String? ?: System.getenv("QS_USE_LOCAL")
     if(useLocalClause == null) {
         ext["qs-useLocals"] = null
         return null
@@ -214,7 +214,7 @@ internal fun Project.getQsLocals(): Set<String>? {
 
     val useLocals = useLocalClause.split(",")
         .map { it.trim() }
-        .filter { it.trim().isNotEmpty() }
+        .filter { it.isNotEmpty() }
         .toSet()
         ext["qs-useLocals"] = useLocals
         return useLocals
@@ -224,7 +224,7 @@ internal fun Project.isLocalTag(name: String): Boolean {
     val locals = getQsLocals() ?: return false
     if(locals.isEmpty()) return true
 
-    return locals.contains(name)
+    return name in locals
 }
 
 internal fun Project.getLocalVersion(name: String = ""): String {
@@ -235,7 +235,7 @@ internal fun Project.getLocalVersion(name: String = ""): String {
         }
 
         val localVersion = (project.findProperty("qs.localVer") as String? ?: System.getenv("QS_LOCAL_VER"))
-            ?.ifEmpty { "0.0.0-SNAPSHOT" } ?: "0.0.0-SNAPSHOT"
+            ?.ifEmpty { LOCAL_VERSION } ?: LOCAL_VERSION
 
         ext["qs-localVer"] = localVersion
         return localVersion

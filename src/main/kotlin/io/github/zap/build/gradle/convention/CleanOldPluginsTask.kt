@@ -12,7 +12,7 @@ abstract class CleanOldPluginsTask : DefaultTask() {
             ?.filter {
                 // Re-iterate this is better since there is no storage calls compare to re-iterate listFiles
                 project.bukkitPlugin.dependencies.any { dep ->
-                    it.name.contains(dep.name) && !(dep.version?.let { it1 -> it.name.contains(it1) } ?: false)
+                    it.name.contains(dep.name) && !(dep.version?.let { it1 -> it1 in it.name } ?: false)
                 }
             }?.forEach {
                 logger.info("Found mismatch version artifact, deleting: $it ")
