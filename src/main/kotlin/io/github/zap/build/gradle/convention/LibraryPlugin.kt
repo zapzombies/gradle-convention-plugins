@@ -18,9 +18,7 @@ class LibraryPlugin : Plugin<Project> {
         project.pluginManager.apply("org.gradle.java-library")
         project.pluginManager.apply("org.gradle.maven-publish")
 
-        project.version = project.findProperty("ver") as String? ?: System.getenv("VERSION")
-                ?: "0.0.0-SNAPSHOT"
-                // ?: "0.0.0-SNAPSHOT-${System.currentTimeMillis() / 1000L}" // Idk should I use it
+        project.version = project.findProperty("ver") as String? ?: System.getenv("VERSION") ?: LOCAL_VERSION
         project.group = "io.github.zap"
 
         project.extensions.configure<JavaPluginExtension>("java") {
