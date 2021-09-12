@@ -18,7 +18,9 @@ class MCPluginPlugin : Plugin<Project> {
 
         project.configurations.named("compileOnlyApi").get().extendsFrom(project.bukkitPlugin)
 
+        val dp = project.tasks.register("deleteOldPlugins", CleanOldPluginsTask::class.java)
         val cp = project.tasks.register("copyPlugins", Copy::class.java) {
+            it.dependsOn(dp)
             it.from(project.bukkitPlugin)
             it.into(project.pluginDir)
         }
@@ -42,18 +44,6 @@ class MCPluginPlugin : Plugin<Project> {
 
         project.tasks.named("compileJava", JavaCompile::class.java) {
             it.dependsOn(cp.get(), csa.get(), csavl.get())
-        }
-
-        project.tasks.getOrRegister("clean-plugin", Delete::class.java) {
-            File(project.pluginDir).listFiles { _: File, name: String ->
-                name.contains(project.name)
-            }?.let { fs -> fs.forEach { f ->
-                it.delete(f)
-            }}
-        }
-
-        project.tasks.named("copyPlugins") {
-            it.dependsOn("clean-plugin")
         }
     }
 }

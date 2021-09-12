@@ -192,7 +192,6 @@ fun Project.qs (name: String = "", options: ExternalModuleDependency.() -> Unit 
                     }
                 }
             }
-            logger.log(LogLevel.ERROR, "$actualName, $version, ${it.requiredVersion}")
         }
         options()
     }
