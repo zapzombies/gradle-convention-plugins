@@ -225,8 +225,6 @@ internal fun Project.getQsLocals(): Set<String>? {
 internal fun Project.isLocalTag(name: String): Boolean {
     val locals = getQsLocals() ?: return false
     return locals.isEmpty() || name in locals
-
-    return name in locals
 }
 
 internal fun Project.getLocalVersion(name: String = ""): String {
