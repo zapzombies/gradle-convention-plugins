@@ -212,7 +212,8 @@ internal fun Project.getQsLocals(): Set<String>? {
         return null
     }
 
-    val useLocals = useLocalClause.split(",")
+    val useLocals = useLocalClause
+        .split(",")
         .map { it.trim() }
         .filter { it.isNotEmpty() }
         .toSet()
