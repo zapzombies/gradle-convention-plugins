@@ -8,7 +8,7 @@ abstract class CleanOldPluginsTask : DefaultTask() {
     @TaskAction
     fun deleteOldPlugins() {
         project.file(project.pluginDir).listFiles()
-            ?.filter {  it.isFile && it.name.endsWith("jar") }
+            ?.filter {  it.isFile && it.extension == "jar" }
             ?.filter {
                 // Re-iterate this is better since there is no storage calls compare to re-iterate listFiles
                 project.bukkitPlugin.dependencies.any { dep ->

@@ -187,7 +187,7 @@ fun Project.qs (name: String = "", options: ExternalModuleDependency.() -> Unit 
                     if (ver != null) {
                         it.require(ver)
                     } else {
-                        logger.log(LogLevel.ERROR, "No version specified for dependency $actualName, fallback to 0.0.0-SNAPSHOT")
+                        logger.error("No version specified for dependency $actualName, fallback to 0.0.0-SNAPSHOT")
                         it.require("0.0.0-SNAPSHOT")
                     }
                 }
