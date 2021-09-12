@@ -216,8 +216,9 @@ internal fun Project.getQsLocals(): Set<String>? {
         .map { it.trim() }
         .filter { it.isNotEmpty() }
         .toSet()
-        ext["qs-useLocals"] = useLocals
-        return useLocals
+
+    ext["qs-useLocals"] = useLocals
+    return useLocals
 }
 
 internal fun Project.isLocalTag(name: String): Boolean {
