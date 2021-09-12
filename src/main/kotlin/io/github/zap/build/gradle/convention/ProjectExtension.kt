@@ -218,7 +218,7 @@ internal fun Project.getQsLocals(): Set<String>? {
         .toSet()
         ext["qs-useLocals"] = useLocals
         return useLocals
-    }
+}
 
 internal fun Project.isLocalTag(name: String): Boolean {
     val locals = getQsLocals() ?: return false
