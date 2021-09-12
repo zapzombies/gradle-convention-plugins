@@ -7,7 +7,9 @@ import org.gradle.api.plugins.*
 import org.gradle.api.DefaultTask
 import org.gradle.api.Project
 import org.gradle.api.artifacts.Configuration
+import org.gradle.api.artifacts.ExternalModuleDependency
 import org.gradle.api.artifacts.repositories.MavenArtifactRepository
+import org.gradle.api.logging.LogLevel
 import org.gradle.api.publish.PublishingExtension
 import org.gradle.api.publish.maven.MavenPublication
 import java.io.File
@@ -169,4 +171,99 @@ fun Project.configureShadow(destination: File,
     tasks.named("build", DefaultTask::class.java) {
         it.dependsOn(sj)
     }
+}
+
+fun Project.qs(name: String = "", options: ExternalModuleDependency.() -> Unit = {}) : ExternalModuleDependency.() -> Unit {
+    return {
+        val actualName = name.ifEmpty { this.name }
+        version {
+            if (isLocalTag(actualName)) {
+                it.require(getLocalVersion(actualName))
+            } else {
+                if(version != null && version!!.isNotEmpty()) {
+                    ext["qs-$actualName-ver"] = version
+                } else {
+                    val ver = getVerFromAncestor(actualName)
+                    if (ver != null) {
+                        it.require(ver)
+                    } else {
+                        logger.error("No version specified for dependency $actualName, fallback to $LOCAL_VERSION")
+                        it.require(LOCAL_VERSION)
+                    }
+                }
+            }
+        }
+        options()
+    }
+}
+
+@Suppress("UNCHECKED_CAST")
+internal fun Project.getQsLocals(): Set<String>? {
+    if(ext.has("qs-useLocals")) {
+        val cached = ext["qs-useLocals"]
+        if(cached is Set<*>) {
+            return cached as Set<String>
+        }
+    }
+
+    val useLocalClause = project.findProperty("qs.useLocal") as String? ?: System.getenv("QS_USE_LOCAL")
+    if(useLocalClause == null) {
+        ext["qs-useLocals"] = null
+        return null
+    }
+
+    val useLocals = useLocalClause
+        .split(",")
+        .map { it.trim() }
+        .filter { it.isNotEmpty() }
+        .toSet()
+
+    ext["qs-useLocals"] = useLocals
+    return useLocals
+}
+
+internal fun Project.isLocalTag(name: String): Boolean {
+    val locals = getQsLocals() ?: return false
+    return locals.isEmpty() || name in locals
+}
+
+internal fun Project.getLocalVersion(name: String = ""): String {
+    if(name.isEmpty()) {
+        if(ext.has("qs-localVer")) {
+            val cached = ext["qs-localVer"]
+            if(cached is String) return cached
+        }
+
+        val localVersion = (project.findProperty("qs.localVer") as String? ?: System.getenv("QS_LOCAL_VER"))
+            ?.ifEmpty { LOCAL_VERSION } ?: LOCAL_VERSION
+
+        ext["qs-localVer"] = localVersion
+        return localVersion
+    } else { // I should refactor this later, kinda duplicate code
+        if(ext.has("qs-localVer-$name")) {
+            val cached = ext["qs-localVer-$name"]
+            if(cached is String) return cached
+        }
+
+        val localVersion = project.findProperty("qs.localVer.$name") as String?
+        return if(localVersion != null) {
+            ext["qs-localVer-$name"] = localVersion
+            localVersion
+        } else {
+            getLocalVersion()
+        }
+    }
+}
+
+internal fun Project.getVerFromAncestor(name: String): String? {
+    return getVerFromAncestorImpl(parent, name)
+}
+
+internal fun getVerFromAncestorImpl(project: Project?, name: String): String? {
+    if (project == null) return null
+    if (!project.ext.has("qs-$name-ver")) return getVerFromAncestorImpl(project.parent, name)
+
+    val ver = project.ext["qs-$name-ver"]
+    return if(ver is String) ver else getVerFromAncestorImpl(project.parent, name)
+
 }
