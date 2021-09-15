@@ -22,6 +22,8 @@ class LibraryPlugin : Plugin<Project> {
         project.group = "io.github.zap"
 
         project.extensions.configure<JavaPluginExtension>("java") {
+            it.withJavadocJar()
+            it.withSourcesJar()
             it.toolchain {
                 it.languageVersion.set(JavaLanguageVersion.of(16))
             }
